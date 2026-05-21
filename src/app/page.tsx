@@ -1,5 +1,8 @@
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import ServicesSection from "@/sections/services/services-section";
+import HeroSection from "@/sections/hero/hero-section";
+import ProcessSection from "@/sections/process/process-section";
 
 export default function HomePage() {
 
@@ -10,29 +13,10 @@ export default function HomePage() {
 
       <main>
 
-        <section
-          className="
-            section-spacing
-          "
-        >
-
-          <div className="container-custom">
-
-            <h1
-              className="
-                text-6xl
-                font-semibold
-                tracking-tight
-              "
-            >
-              Schönau IT
-            </h1>
-
-          </div>
-
-        </section>
-
-      </main>
+  <HeroSection />
+  <ServicesSection />
+  <ProcessSection />
+</main>
 
       <Footer />
 

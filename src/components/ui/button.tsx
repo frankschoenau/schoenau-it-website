@@ -11,44 +11,59 @@ interface ButtonProps
 }
 
 export default function Button({
+
   children,
+
   variant = "primary",
+
   className = "",
+
   ...props
+
 }: ButtonProps) {
 
   const variants = {
 
     primary:
       `
-        bg-blue-600
-        hover:bg-blue-700
-        text-white
+      bg-blue-600
+      hover:bg-blue-700
+      text-white
+      shadow-lg
+      shadow-blue-500/20
       `,
 
     secondary:
       `
-        border
-        border-white/10
-        bg-white/5
-        hover:bg-white/10
-        text-white
+      border
+      border-white/10
+      bg-white/5
+      hover:bg-white/10
+      text-white
+      backdrop-blur-xl
       `,
   };
 
   return (
+
     <button
       className={`
         inline-flex
         items-center
         justify-center
         rounded-full
-        px-6
-        py-3
+
+        px-7
+        py-4
+
         text-sm
         font-medium
+
         transition-all
         duration-300
+
+        hover:-translate-y-0.5
+
         ${variants[variant]}
         ${className}
       `}
@@ -56,5 +71,6 @@ export default function Button({
     >
       {children}
     </button>
+
   );
 }

@@ -35,6 +35,7 @@ export default function SectionHeading({
         >
           {eyebrow}
         </div>
+
       )}
 
       <h2
@@ -42,6 +43,7 @@ export default function SectionHeading({
           text-4xl
           font-semibold
           tracking-tight
+
           md:text-5xl
         "
       >
