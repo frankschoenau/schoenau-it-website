@@ -1,14 +1,175 @@
+@import "tailwindcss";
+
 :root {
-  --background: #0B1120;
-  --surface: #111827;
-  --primary: #2563EB;
-  --accent: #06B6D4;
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
+
+  /* =========================
+     COLORS
+  ========================= */
+
+  --background: #0b1120;
+  --background-secondary: #111827;
+
+  --foreground: #f8fafc;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+
+  --accent: #06b6d4;
+
+  --muted: #94a3b8;
+
+  --border: rgba(255,255,255,0.08);
+
+  /* =========================
+     TYPOGRAPHY
+  ========================= */
+
+  --font-heading: var(--font-geist-sans);
+  --font-body: var(--font-inter);
+
+  /* =========================
+     SPACING
+  ========================= */
+
+  --section-spacing: 8rem;
+
+  --container-padding: 1.5rem;
+
+  /* =========================
+     RADIUS
+  ========================= */
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+
+  /* =========================
+     SHADOWS
+  ========================= */
+
+  --shadow-card:
+    0 10px 30px rgba(0,0,0,0.25);
+
+  /* =========================
+     TRANSITIONS
+  ========================= */
+
+  --transition-default:
+    all 0.25s ease;
+}
+
+/* =========================
+   RESET
+========================= */
+
+* {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
+
   background: var(--background);
-  color: var(--text-primary);
+
+  color: var(--foreground);
+
+  font-family: var(--font-body);
+
+  text-rendering: optimizeLegibility;
+
+  -webkit-font-smoothing: antialiased;
 }
 
+/* =========================
+   TYPOGRAPHY
+========================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+
+  font-family: var(--font-heading);
+
+  letter-spacing: -0.03em;
+}
+
+p {
+  line-height: 1.7;
+}
+
+/* =========================
+   SELECTION
+========================= */
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+/* =========================
+   LAYOUT UTILITIES
+========================= */
+
+.container-custom {
+
+  width: 100%;
+
+  max-width: 1280px;
+
+  margin-inline: auto;
+
+  padding-inline:
+    var(--container-padding);
+}
+
+.section-spacing {
+
+  padding-top:
+    var(--section-spacing);
+
+  padding-bottom:
+    var(--section-spacing);
+}
+
+/* =========================
+   UI UTILITIES
+========================= */
+
+.card-blur {
+
+  background:
+    rgba(255,255,255,0.03);
+
+  backdrop-filter:
+    blur(12px);
+}
+
+.border-subtle {
+
+  border:
+    1px solid var(--border);
+}
+
+.text-gradient {
+
+  background:
+    linear-gradient(
+      to right,
+      #2563eb,
+      #06b6d4
+    );
+
+  -webkit-background-clip: text;
+
+  -webkit-text-fill-color:
+    transparent;
+}
