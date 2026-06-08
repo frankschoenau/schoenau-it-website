@@ -9,8 +9,8 @@ export default function HeroSection() {
       className="
         relative
         overflow-hidden
-        pt-32
-        pb-28
+        pt-12
+        pb-20
       "
     >
 
@@ -21,8 +21,8 @@ export default function HeroSection() {
           absolute
           left-1/2
           top-0
-          h-[500px]
-          w-[500px]
+          h-125
+          w-125
           -translate-x-1/2
           rounded-full
           bg-blue-500/20
@@ -37,8 +37,8 @@ export default function HeroSection() {
           absolute
           right-0
           top-40
-          h-[300px]
-          w-[300px]
+          h-75
+          w-75
           rounded-full
           bg-cyan-500/10
           blur-[120px]
@@ -78,34 +78,34 @@ export default function HeroSection() {
           {/* HEADLINE */}
 
           <h1
-            className="
-              max-w-5xl
-              text-5xl
-              font-semibold
-              leading-[1]
-              tracking-tight
+              className="
+                max-w-5xl
+                text-4xl
+                font-semibold
+                leading-[1]
+                tracking-tight
 
-              sm:text-6xl
-              md:text-7xl
-            "
-          >
-            Moderne IT-Beratung
+                sm:text-5xl
+                md:text-7xl
+              "
+            >
+            Business-Prozesse
             <br />
 
             <span className="text-gradient">
-              & AI-gestützte
+              automatisieren
             </span>
 
             <br />
 
-            Prozessoptimierung
+            und mit KI weiterentwickeln.
           </h1>
 
           {/* SUBTEXT */}
 
           <p
             className="
-              mt-10
+              mt-6
               max-w-2xl
               text-lg
               leading-relaxed
@@ -113,20 +113,20 @@ export default function HeroSection() {
               md:text-xl
             "
           >
-            Strukturierte IT-Projekte,
-            intelligente Automatisierung
-            und moderne AI-Lösungen
-            für Unternehmen.
+            Schönau IT unterstützt Unternehmen dabei,
+            manuelle Abläufe zu reduzieren, Systeme zu
+            verbinden und KI dort einzusetzen, wo sie
+            echten Mehrwert schafft.
           </p>
 
           {/* CTA */}
 
           <div
             className="
-              mt-12
+              mt-6
               flex
               flex-col
-              gap-4
+              gap-3
               sm:flex-row
             "
           >
@@ -139,114 +139,118 @@ export default function HeroSection() {
             </Button>
           </div>
 
-          {/* TRUST BAR */}
+          {/* VALUE CARDS */}
 
-          <div
-            className="
-              mt-20
-              grid
-              w-full
-              grid-cols-1
-              gap-6
+<div
+  className="
+    mt-8
+    grid
+    w-full
+    grid-cols-1
+    gap-6
 
-              md:grid-cols-3
-            "
-          >
+    md:mt-12
+    md:grid-cols-3
+  "
+>
 
-            {/* CARD 1 */}
+  {/* CARD 1 */}
 
-            <div
-              className="
-                card-blur
-                border-subtle
-                rounded-2xl
-                p-6
-              "
-            >
-              <div
-                className="
-                  text-3xl
-                  font-semibold
-                "
-              >
-                Enterprise
-              </div>
+  <div
+    className="
+      card-blur
+      border-subtle
+      rounded-2xl
+      p-6
+    "
+  >
+    <div
+      className="
+        text-3xl
+        font-semibold
+      "
+    >
+      Weniger manuelle Arbeit
+    </div>
 
-              <div
-                className="
-                  mt-2
-                  text-sm
-                  text-slate-400
-                "
-              >
-                Strukturierte Projektsteuerung
-                und professionelle Umsetzung
-              </div>
-            </div>
+    <div
+      className="
+        mt-3
+        text-sm
+        leading-relaxed
+        text-slate-400
+      "
+    >
+      Digitale Prozesse reduzieren
+      Routineaufgaben und sparen Zeit.
+    </div>
+  </div>
 
-            {/* CARD 2 */}
+  {/* CARD 2 */}
 
-            <div
-              className="
-                card-blur
-                border-subtle
-                rounded-2xl
-                p-6
-              "
-            >
-              <div
-                className="
-                  text-3xl
-                  font-semibold
-                "
-              >
-                AI & Automation
-              </div>
+  <div
+    className="
+      card-blur
+      border-subtle
+      rounded-2xl
+      p-6
+    "
+  >
+    <div
+      className="
+        text-3xl
+        font-semibold
+      "
+    >
+      Systeme verbinden
+    </div>
 
-              <div
-                className="
-                  mt-2
-                  text-sm
-                  text-slate-400
-                "
-              >
-                Moderne Prozessoptimierung
-                mit intelligenten Workflows
-              </div>
-            </div>
+    <div
+      className="
+        mt-3
+        text-sm
+        leading-relaxed
+        text-slate-400
+      "
+    >
+      Daten und Anwendungen arbeiten
+      nahtlos zusammen.
+    </div>
+  </div>
 
-            {/* CARD 3 */}
+  {/* CARD 3 */}
 
-            <div
-              className="
-                card-blur
-                border-subtle
-                rounded-2xl
-                p-6
-              "
-            >
-              <div
-                className="
-                  text-3xl
-                  font-semibold
-                "
-              >
-                Consulting
-              </div>
+  <div
+    className="
+      card-blur
+      border-subtle
+      rounded-2xl
+      p-6
+    "
+  >
+    <div
+      className="
+        text-3xl
+        font-semibold
+      "
+    >
+     Bessere Entscheidungen
+    </div>
 
-              <div
-                className="
-                  mt-2
-                  text-sm
-                  text-slate-400
-                "
-              >
-                Business-orientierte Lösungen
-                mit technischem Fokus
-              </div>
-            </div>
+    <div
+      className="
+        mt-3
+        text-sm
+        leading-relaxed
+        text-slate-400
+      "
+    >
+     Relevante Informationen schneller
+     finden und gezielt nutzen.
+    </div>
+  </div>
 
-          </div>
+</div>
 
         </div>
 

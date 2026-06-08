@@ -1,44 +1,38 @@
 interface ProcessStepProps {
-
   number: string;
-
   title: string;
-
   description: string;
 }
 
 export default function ProcessStep({
-
   number,
-
   title,
-
   description,
-
 }: ProcessStepProps) {
-
   return (
-
     <div
       className="
         group
         relative
       "
     >
-
       {/* CONNECTION LINE */}
 
       <div
         className="
           absolute
-          left-6
-          top-14
+          left-8
+          top-16
+
           hidden
+          md:block
+
           h-full
           w-px
-          bg-white/10
 
-          md:block
+          bg-linear-to-b
+          from-cyan-500/30
+          to-white/5
         "
       />
 
@@ -50,17 +44,25 @@ export default function ProcessStep({
           z-10
 
           flex
-          gap-6
+          flex-col
+
+          gap-4
+
+          md:flex-row
+          md:gap-8
         "
       >
-
         {/* NUMBER */}
 
         <div
           className="
             flex
-            h-12
-            w-12
+            h-14
+            w-14
+
+            md:h-16
+            md:w-16
+
             shrink-0
             items-center
             justify-center
@@ -68,13 +70,16 @@ export default function ProcessStep({
             rounded-full
 
             border
-            border-cyan-500/20
+            border-cyan-500/30
 
             bg-cyan-500/10
 
-            text-sm
-            font-semibold
+            text-base
+            font-bold
+            tracking-wide
             text-cyan-400
+
+            shadow-[0_0_25px_rgba(6,182,212,0.15)]
           "
         >
           {number}
@@ -84,28 +89,31 @@ export default function ProcessStep({
 
         <div
           className="
-            flex-1
+            w-full
 
-            rounded-[28px]
+            rounded-[24px]
+            md:rounded-[28px]
 
             border
             border-white/5
 
-            bg-white/[0.03]
+            bg-white/3
 
-            p-8
+            p-6
+            md:p-8
 
             transition-all
             duration-300
 
             hover:border-cyan-500/20
-            hover:bg-white/[0.05]
+            hover:bg-white/5
           "
         >
-
           <h3
             className="
-              text-2xl
+              text-xl
+              md:text-2xl
+
               font-semibold
               tracking-tight
             "
@@ -117,18 +125,17 @@ export default function ProcessStep({
             className="
               mt-4
 
-              leading-relaxed
+              text-sm
+              md:text-base
 
+              leading-relaxed
               text-slate-400
             "
           >
             {description}
           </p>
-
         </div>
-
       </div>
-
     </div>
   );
 }

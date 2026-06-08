@@ -6,7 +6,7 @@ export default function Footer() {
       className="
         border-t
         border-white/5
-        py-10
+        py-12
       "
     >
       <Container>
@@ -15,7 +15,8 @@ export default function Footer() {
           className="
             flex
             flex-col
-            gap-4
+            gap-8
+
             md:flex-row
             md:items-center
             md:justify-between
@@ -23,30 +24,31 @@ export default function Footer() {
         >
 
           <div>
-
             <div className="font-semibold">
               Schönau IT
             </div>
 
-            <div
-              className="
-                text-sm
-                text-slate-400
-              "
-            >
-              Moderne IT- &
-              AI-Beratung
-            </div>
-
+            <p className="mt-2 text-sm text-slate-400">
+              Digitalisierung, Automatisierung und KI für Unternehmen.
+            </p>
           </div>
 
           <div
             className="
+              flex
+              flex-wrap
+              gap-6
               text-sm
-              text-slate-500
+              text-slate-400
             "
           >
-            © 2026 Schönau IT
+            <a href="#leistungen">Leistungen</a>
+            <a href="#referenzen">Referenzen</a>
+            <a href="#ueber-mich">Über mich</a>
+            <a href="#kontakt">Kontakt</a>
+
+            <a href="/impressum">Impressum</a>
+            <a href="/datenschutz">Datenschutz</a>
           </div>
 
         </div>

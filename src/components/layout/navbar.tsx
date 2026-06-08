@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Container from "./container";
 
 export default function Navbar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <header
       className="
@@ -14,21 +19,19 @@ export default function Navbar() {
       "
     >
       <Container>
-
         <div
           className="
             flex
-            h-20
+            h-16
             items-center
             justify-between
           "
         >
-
           {/* LOGO */}
 
           <div
             className="
-              text-lg
+              text-base
               font-semibold
               tracking-tight
             "
@@ -36,52 +39,169 @@ export default function Navbar() {
             Schönau IT
           </div>
 
-          {/* NAVIGATION */}
+          {/* DESKTOP NAVIGATION */}
 
           <nav
             className="
               hidden
               gap-8
               md:flex
+              md:items-center
             "
           >
-            <a href="#">
+            <a href="#leistungen">
               Leistungen
             </a>
 
-            <a href="#">
-              Projekte
+            <a href="#referenzen">
+              Referenzen
             </a>
 
-            <a href="#">
+            <a href="#ueber-mich">
               Über mich
             </a>
 
-            <a href="#">
+            <a href="#kontakt">
               Kontakt
             </a>
           </nav>
 
-          {/* CTA BUTTON */}
+          {/* DESKTOP CTA */}
 
-          <button
+          <a
+            href="#kontakt"
             className="
+              hidden
+              md:inline-flex
+
               rounded-full
               bg-blue-600
+
               px-5
               py-2
+
               text-sm
               font-medium
+
               transition
               hover:bg-blue-700
             "
           >
-            Erstgespräch
+            Kostenloses Erstgespräch
+          </a>
+
+          {/* MOBILE HAMBURGER */}
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="
+              flex
+              md:hidden
+
+              items-center
+              justify-center
+
+              h-10
+              w-10
+
+              rounded-full
+              border
+              border-white/10
+
+              text-lg
+            "
+          >
+            ☰
           </button>
-
         </div>
-
       </Container>
+
+      {/* MOBILE MENU */}
+
+      {mobileMenuOpen && (
+        <div
+          className="
+            md:hidden
+
+            border-t
+            border-white/5
+
+            bg-[#0b1120]
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+
+              gap-3
+              p-4
+            "
+          >
+            <a
+              href="#leistungen"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Leistungen
+            </a>
+
+            <a
+              href="#referenzen"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Referenzen
+            </a>
+
+            <a
+              href="#ueber-mich"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Über mich
+            </a>
+
+            <a
+              href="#kontakt"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Kontakt
+            </a>
+
+            {/* CTA getrennt */}
+
+            <div
+              className="
+                mt-2
+                border-t
+                border-white/10
+                pt-4
+              "
+            >
+              <a
+                href="#kontakt"
+                onClick={() => setMobileMenuOpen(false)}
+                className="
+                  block
+
+                  rounded-xl
+                  bg-blue-600
+
+                  px-4
+                  py-2.5
+
+                  text-center
+                  text-sm
+                  font-medium
+
+                  transition
+                  hover:bg-blue-700
+                "
+              >
+                Kostenloses Erstgespräch
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

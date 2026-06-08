@@ -10,40 +10,33 @@ import {
 } from "lucide-react";
 
 export default function ServicesSection() {
-
   return (
-
     <section
+      id="leistungen"
       className="
         relative
         py-32
       "
     >
-
       <Container>
 
         {/* HEADER */}
 
         <div
           className="
-            mb-20
+            mb-12
           "
         >
-
           <SectionHeading
-
             eyebrow="LEISTUNGEN"
-
             title="Moderne Lösungen für strukturierte digitale Prozesse"
-
             description="
-            Von AI-gestützter Automatisierung
+            Von KI gestützter Automatisierung
             bis hin zu professioneller
             IT-Projektsteuerung und
             Prozessoptimierung.
             "
           />
-
         </div>
 
         {/* GRID */}
@@ -60,66 +53,52 @@ export default function ServicesSection() {
           {/* CARD 1 */}
 
           <ServiceCard
-
             icon={
               <Workflow size={28} />
             }
-
-            title="Prozessautomatisierung"
-
+            title="Prozesse automatisieren"
             description="
-            Automatisierung repetitiver
-            Geschäftsprozesse durch
-            moderne Workflow-Systeme
-            und intelligente Integrationen.
+            Weniger manuelle Arbeit,
+            schnellere Abläufe und
+            mehr Zeit für wertschöpfende Aufgaben.
             "
           />
 
           {/* CARD 2 */}
 
           <ServiceCard
-
             icon={
               <Bot size={28} />
             }
-
-            title="AI-gestützte Lösungen"
-
+            title="KI sinnvoll einsetzen"
             description="
-            Moderne AI-Systeme zur
-            Optimierung von Abläufen,
-            Datenverarbeitung und
-            Entscheidungsprozessen.
+            Praktische KI-Lösungen,
+            die Mitarbeiter unterstützen
+            und Prozesse effizienter machen.
             "
           />
 
           {/* CARD 3 */}
 
           <ServiceCard
-
             icon={
               <Network size={28} />
             }
-
-            title="Systemintegration"
-
+            title="Systeme verbinden"
             description="
-            Verbindung bestehender
-            Systeme, APIs und Plattformen
-            für effiziente digitale Prozesse.
+            Daten und Anwendungen
+            nahtlos verknüpfen statt
+            doppelt erfassen und pflegen.
             "
           />
 
           {/* CARD 4 */}
 
           <ServiceCard
-
             icon={
               <BriefcaseBusiness size={28} />
             }
-
-            title="IT-Consulting"
-
+            title="Digitalisierung begleiten"
             description="
             Strukturierte Beratung,
             Projektsteuerung und
@@ -131,7 +110,6 @@ export default function ServicesSection() {
         </div>
 
       </Container>
-
     </section>
   );
 }

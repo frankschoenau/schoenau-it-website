@@ -1,21 +1,19 @@
 import Container from "@/components/layout/container";
-
 import SectionHeading from "@/components/ui/section-heading";
-
 import ProcessStep from "@/components/ui/process-step";
 
 export default function ProcessSection() {
-
   return (
-
     <section
+      id="prozess"
       className="
         relative
         overflow-hidden
-        py-32
+
+        py-20
+        md:py-32
       "
     >
-
       {/* BACKGROUND GLOW */}
 
       <div
@@ -38,24 +36,21 @@ export default function ProcessSection() {
       />
 
       <Container>
-
         {/* HEADER */}
 
-        <div className="mb-20">
-
+        <div
+          className="
+            mb-12
+            md:mb-20
+          "
+        >
           <SectionHeading
-
             eyebrow="PROZESS"
-
-            title="Strukturierte Umsetzung moderner digitaler Lösungen"
-
+            title="So entsteht aus einer Idee eine funktionierende Lösung"
             description={`
-            Von der Analyse bestehender Prozesse
-            bis hin zur nachhaltigen Optimierung
-            moderner AI- und Automatisierungssysteme.
+            Ein klarer Ablauf von der ersten Analyse bis zur erfolgreichen Umsetzung und kontinuierlichen Weiterentwicklung.
             `}
           />
-
         </div>
 
         {/* PROCESS STEPS */}
@@ -64,82 +59,53 @@ export default function ProcessSection() {
           className="
             relative
             mx-auto
-            flex
+
             max-w-4xl
+
+            px-2
+            sm:px-4
+            md:px-0
+
+            flex
             flex-col
-            gap-10
+
+            gap-8
+            md:gap-10
           "
         >
-
-          {/* STEP 1 */}
-
           <ProcessStep
-
             number="01"
-
-            title="Analyse & Strategie"
-
+            title="Verstehen & Analysieren"
             description={`
-            Analyse bestehender Prozesse,
-            technischer Systeme und
-            Optimierungspotenziale als
-            Grundlage für eine strukturierte
-            digitale Strategie.
+            Gemeinsam identifizieren wir Engpässe, manuelle Aufwände und Verbesserungspotenziale in Ihren bestehenden Prozessen.
             `}
           />
 
-          {/* STEP 2 */}
-
           <ProcessStep
-
             number="02"
-
-            title="Konzeption & Architektur"
-
+            title="Lösung entwickeln"
             description={`
-            Entwicklung moderner
-            Lösungsarchitekturen,
-            Workflows und Integrationen
-            für effiziente digitale Abläufe.
+            Auf Basis der Analyse entsteht ein praxisnahes Konzept, das zu Ihren Prozessen und Zielen passt.
             `}
           />
 
-          {/* STEP 3 */}
-
           <ProcessStep
-
             number="03"
-
-            title="Automatisierung & Integration"
-
+            title="Umsetzen & Automatisieren"
             description={`
-            Umsetzung intelligenter
-            Automatisierungsprozesse,
-            API-Integrationen und
-            AI-gestützter Systeme.
+            Die Lösung wird strukturiert umgesetzt – von Automatisierungen über Systemintegration bis hin zu KI-Anwendungen.
             `}
           />
-
-          {/* STEP 4 */}
 
           <ProcessStep
-
             number="04"
-
-            title="Optimierung & Skalierung"
-
+            title="Optimieren & Weiterentwickeln"
             description={`
-            Kontinuierliche Verbesserung,
-            Monitoring und strategische
-            Weiterentwicklung digitaler
-            Prozesse und Systeme.
+            Nach dem Go-Live werden Prozesse weiter verbessert, angepasst und gemeinsam nachhaltig weiterentwickelt.
             `}
           />
-
         </div>
-
       </Container>
-
     </section>
   );
 }
