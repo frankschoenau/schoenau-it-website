@@ -67,7 +67,7 @@ export default function ContactSection() {
 >
 
   <a
-    href="mailto:info@schoenau-it.de"
+    href="mailto:frank@schoenau-it.de"
     className="
       inline-flex
       items-center
@@ -110,7 +110,7 @@ export default function ContactSection() {
     href="mailto:frank@schoenau-it.de"
     className="mt-2 text-slate-400 hover:text-cyan-400"
   >
-    info@schoenau-it.de
+    frank@schoenau-it.de
   </a>
   <a
   href="tel:+4915152450742"
