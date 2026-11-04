@@ -1,15 +1,18 @@
-import { createHash, randomBytes } from "node:crypto";
-import { pool } from "../db";
-import { hashPassword, verifyPassword } from "./password";
 import { sendMail } from "./mail";
-import { createSession, pruneExpiredSessions } from "./session";
+import {
+  confirm,
+  deleteAccount as apiDeleteAccount,
+  login as apiLogin,
+  register as apiRegister,
+} from "../api/identity";
+import { currentAccount, destroySession, startSessionFromToken } from "./session";
 
 /**
- * Konten: anlegen, bestätigen, anmelden, löschen.
+ * Konten: anlegen, bestätigen, anmelden, löschen — über die zentrale API.
  *
- * Die Funktionen hier sind die einzige Stelle, die die Tabellen im Schema
- * `web` beschreibt. Routen prüfen ihre Eingaben und rufen sie auf; sie
- * schreiben nicht selbst.
+ * Die Website führt keine Kontendatenbank mehr und hasht keine Passwörter
+ * selbst. Sie prüft ihre Eingaben, ruft die API und übersetzt deren stabile
+ * Codes in die Codes dieser Oberfläche. Die API ist die eine Identitätsquelle.
  */
 
 export type AuthResult<T> = { ok: true; value: T } | { ok: false; code: AuthCode };
@@ -23,7 +26,6 @@ export type AuthCode =
   | "WRONG_PASSWORD";
 
 const MIN_PASSWORD_LENGTH = 10;
-const VERIFY_TOKEN_MINUTES = 60 * 24;
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -31,15 +33,10 @@ export function normalizeEmail(email: string): string {
 
 /**
  * Bewusst grob: eine E-Mail-Adresse endgültig zu prüfen ist nicht die Aufgabe
- * eines regulären Ausdrucks, sondern der Bestätigungsmail. Hier wird nur
- * abgewiesen, was offensichtlich keine Adresse ist.
+ * eines regulären Ausdrucks, sondern der Bestätigungsmail.
  */
 export function looksLikeEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-}
-
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
 }
 
 export async function register(
@@ -48,39 +45,18 @@ export async function register(
   baseUrl: string,
 ): Promise<AuthResult<{ accountId: string }>> {
   const normalized = normalizeEmail(email);
-
   if (!looksLikeEmail(normalized)) return { ok: false, code: "INVALID_EMAIL" };
   if (password.length < MIN_PASSWORD_LENGTH) return { ok: false, code: "WEAK_PASSWORD" };
 
-  const passwordHash = await hashPassword(password);
-
-  let accountId: string;
-  try {
-    const inserted = await pool().query<{ id: string }>(
-      `INSERT INTO web.account (email, email_normalized, password_hash)
-       VALUES ($1, $2, $3)
-       RETURNING id`,
-      [email.trim(), normalized, passwordHash],
-    );
-    accountId = inserted.rows[0].id;
-  } catch (error) {
-    // 23505 ist die Verletzung der Eindeutigkeit — die Adresse ist vergeben.
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "23505") {
-      return { ok: false, code: "EMAIL_TAKEN" };
-    }
-    throw error;
+  const result = await apiRegister(email.trim(), password);
+  if (!result.ok || !result.data) {
+    if (result.code === "IDENTITY_EMAIL_TAKEN") return { ok: false, code: "EMAIL_TAKEN" };
+    if (result.code === "IDENTITY_EMAIL_INVALID") return { ok: false, code: "INVALID_EMAIL" };
+    if (result.code?.startsWith("PASSWORD_")) return { ok: false, code: "WEAK_PASSWORD" };
+    throw new Error(`REGISTER_FAILED:${result.code ?? result.status}`);
   }
 
-  const token = randomBytes(32).toString("base64url");
-  const expiresAt = new Date(Date.now() + VERIFY_TOKEN_MINUTES * 60 * 1000);
-
-  await pool().query(
-    `INSERT INTO web.email_token (account_id, purpose, token_hash, expires_at)
-     VALUES ($1, 'verify_email', $2, $3)`,
-    [accountId, hashToken(token), expiresAt],
-  );
-
-  const link = `${baseUrl}/api/auth/verify?token=${encodeURIComponent(token)}`;
+  const link = `${baseUrl}/api/auth/verify?token=${encodeURIComponent(result.data.confirm_token)}`;
   await sendMail({
     to: email.trim(),
     subject: "Bitte bestätigen Sie Ihre E-Mail-Adresse",
@@ -88,82 +64,51 @@ export async function register(
       "Guten Tag,\n\n" +
       "bitte bestätigen Sie Ihre Adresse, damit Ihr Health Check gespeichert werden kann:\n\n" +
       `${link}\n\n` +
-      "Der Link ist 24 Stunden gültig. Wenn Sie sich nicht registriert haben, ignorieren Sie diese Mail.\n",
+      "Der Link ist 48 Stunden gültig. Wenn Sie sich nicht registriert haben, ignorieren Sie diese Mail.\n",
   });
 
-  return { ok: true, value: { accountId } };
+  return { ok: true, value: { accountId: result.data.account_id } };
 }
 
-export async function verifyEmail(token: string): Promise<AuthResult<{ email: string }>> {
-  const result = await pool().query<{ id: string; account_id: string; email: string }>(
-    `SELECT t.id, t.account_id, a.email
-       FROM web.email_token t
-       JOIN web.account a ON a.id = t.account_id
-      WHERE t.token_hash = $1
-        AND t.purpose = 'verify_email'
-        AND t.used_at IS NULL
-        AND t.expires_at > now()
-      LIMIT 1`,
-    [hashToken(token)],
-  );
-
-  const row = result.rows[0];
-  if (!row) return { ok: false, code: "TOKEN_INVALID" };
-
-  await pool().query("UPDATE web.account SET email_verified_at = now() WHERE id = $1", [row.account_id]);
-  await pool().query("UPDATE web.email_token SET used_at = now() WHERE id = $1", [row.id]);
-
-  return { ok: true, value: { email: row.email } };
+export async function verifyEmail(token: string): Promise<AuthResult<true>> {
+  const result = await confirm(token);
+  if (!result.ok) return { ok: false, code: "TOKEN_INVALID" };
+  return { ok: true, value: true };
 }
 
 export async function login(
   email: string,
   password: string,
-  userAgent: string | null,
+  _userAgent: string | null,
 ): Promise<AuthResult<{ accountId: string; emailVerified: boolean }>> {
-  const normalized = normalizeEmail(email);
-
-  const result = await pool().query<{
-    id: string;
-    password_hash: string;
-    email_verified_at: Date | null;
-  }>(
-    "SELECT id, password_hash, email_verified_at FROM web.account WHERE email_normalized = $1 LIMIT 1",
-    [normalized],
-  );
-
-  const row = result.rows[0];
-  if (!row) {
-    // Auch ohne Konto wird gerechnet: die Antwortzeit soll nicht verraten, ob
-    // eine Adresse existiert.
-    await hashPassword(password);
+  const result = await apiLogin(normalizeEmail(email), password);
+  if (!result.ok || !result.data) {
+    // Auch „nicht bestätigt“ wird wie falsche Zugangsdaten behandelt: die
+    // Antwort soll nicht verraten, ob eine Adresse existiert.
     return { ok: false, code: "INVALID_CREDENTIALS" };
   }
-
-  const matches = await verifyPassword(password, row.password_hash);
-  if (!matches) return { ok: false, code: "INVALID_CREDENTIALS" };
-
-  await pruneExpiredSessions();
-  await createSession(row.id, userAgent);
-  await pool().query("UPDATE web.account SET last_login_at = now() WHERE id = $1", [row.id]);
-
-  return { ok: true, value: { accountId: row.id, emailVerified: row.email_verified_at !== null } };
+  await startSessionFromToken(result.data.session_token);
+  return { ok: true, value: { accountId: result.data.account_id, emailVerified: true } };
 }
 
-export async function deleteAccount(accountId: string, password: string): Promise<AuthResult<true>> {
-  const result = await pool().query<{ password_hash: string }>(
-    "SELECT password_hash FROM web.account WHERE id = $1 LIMIT 1",
-    [accountId],
-  );
+export async function deleteAccount(_accountId: string, password: string): Promise<AuthResult<true>> {
+  // Die API löscht über die Sitzung; das Passwort wird zusätzlich erneut
+  // geprüft, indem eine frische Anmeldung versucht wird. Diese Sitzung wird
+  // für die Löschung benutzt und verschwindet mit dem Konto.
+  const account = await currentAccount();
+  if (!account) return { ok: false, code: "INVALID_CREDENTIALS" };
 
-  const row = result.rows[0];
-  if (!row) return { ok: false, code: "INVALID_CREDENTIALS" };
-  if (!(await verifyPassword(password, row.password_hash))) {
-    return { ok: false, code: "WRONG_PASSWORD" };
+  const check = await apiLogin(account.email, password);
+  if (!check.ok || !check.data) return { ok: false, code: "WRONG_PASSWORD" };
+
+  const deleted = await apiDeleteAccount(check.data.session_token);
+  if (!deleted.ok) {
+    if (deleted.code === "IDENTITY_ACCOUNT_HAS_ORDERS") {
+      throw new Error("ACCOUNT_HAS_ORDERS");
+    }
+    throw new Error(`DELETE_FAILED:${deleted.code ?? deleted.status}`);
   }
-
-  // Sitzungen und Token hängen per ON DELETE CASCADE am Konto.
-  await pool().query("DELETE FROM web.account WHERE id = $1", [accountId]);
+  await destroySession();
   return { ok: true, value: true };
 }
 

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { newSubmissionId } from "@/lib/health-check/submission";
+import { createSubmitGuard } from "@/lib/health-check/submit-guard";
 import {
   SECTIONS,
   CHAPTERS,
@@ -18,6 +20,12 @@ import {
  *
  * Gerechnet wird hier nichts. Der Client sammelt Antworten und schickt sie an
  * den Server; was sie bedeuten, entscheidet die Engine.
+ *
+ * Vorgangs-ID (AP-04.34): Ein Vorgang beginnt mit dem ersten Absenden und
+ * behält seine ID über alle Wiederholungen — Doppelklick, Timeout, erneutes
+ * Senden nach einem Fehler. Aendert der Kunde seine Antworten und sendet
+ * erneut, ist das ein neuer Vorgang und bekommt eine neue ID; ebenso ein neuer
+ * Dialog, ein Reload oder ein zweiter Tab.
  */
 
 const PFLICHT_HINWEIS = "Diese Angabe wird für die Bewertung gebraucht.";
@@ -36,6 +44,14 @@ export default function Dialogue() {
   const [hint, setHint] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Eine ID je Vorgang. Sie ueberlebt Wiederholungen mit unveraenderten
+  // Antworten; sobald sich die Antworten aendern, ist es ein neuer Vorgang und
+  // bekommt eine neue ID. Der Vergleich haengt an der Objektidentitaet, die
+  // `setAnswers` bei jeder Aenderung erneuert.
+  const submission = useRef<{ id: string; answers: Answers } | null>(null);
+  // Zweiter Riegel gegen zwei Aufrufe im selben Ereignis-Zyklus: `busy` wirkt
+  // erst mit dem naechsten Rendern, dieser Riegel sofort.
+  const guard = useRef(createSubmitGuard());
   const economic = useMemo(() => defaultEconomic(), []);
 
   const visible = useMemo(
@@ -90,13 +106,20 @@ export default function Dialogue() {
   }
 
   async function finish() {
+    if (!guard.current.tryAcquire(busy)) return;
     setBusy(true);
     setError(null);
     try {
+      if (submission.current === null || submission.current.answers !== answers) {
+        submission.current = { id: newSubmissionId(), answers };
+      }
+      const submissionId = submission.current.id;
       const response = await fetch("/api/health-check/assess", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers, economic }),
+        // Dieselbe Vorgangs-ID bei jedem Versuch: der Schluessel, an dem die
+        // API eine Wiederholung erkennt.
+        body: JSON.stringify({ answers, economic, submissionId }),
       });
       const payload = (await response.json()) as { ok?: boolean; code?: string; checkId?: string };
       if (payload.ok && payload.checkId) {
@@ -113,6 +136,7 @@ export default function Dialogue() {
     } catch {
       setError("Der Server antwortet nicht. Bitte versuchen Sie es erneut.");
     } finally {
+      guard.current.release();
       setBusy(false);
     }
   }

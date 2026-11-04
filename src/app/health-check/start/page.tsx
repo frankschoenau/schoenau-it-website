@@ -6,7 +6,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/layout/container";
 import Dialogue from "@/components/health-check/dialogue";
-import { currentAccount } from "@/lib/auth/session";
+import ServiceNotice from "@/components/health-check/service-notice";
+import { sessionState } from "@/lib/auth/session";
 
 import "@/styles/health-check.css";
 
@@ -18,8 +19,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function StartPage() {
-  const account = await currentAccount();
-  if (!account) redirect("/anmelden");
+  const state = await sessionState();
+  if (state.kind === "signed-out" || state.kind === "forbidden") redirect("/anmelden");
+  if (state.kind !== "signed-in") {
+    return (
+      <ServiceNotice
+        title="Der Dienst ist gerade nicht erreichbar"
+        message="Ihre Sitzung bleibt bestehen. Bitte versuchen Sie es in einigen Minuten erneut."
+      />
+    );
+  }
+  const account = state.account;
 
   if (account.emailVerifiedAt === null) {
     return (

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { register, login, verifyEmail, deleteAccount, type AuthCode } from "@/lib/auth/accounts";
-import { currentAccount, destroySession } from "@/lib/auth/session";
+import { destroySession, sessionState } from "@/lib/auth/session";
 
 /**
  * Kontostrecke: registrieren, anmelden, abmelden, bestätigen, löschen.
@@ -74,8 +74,14 @@ export async function POST(
   }
 
   if (action === "delete") {
-    const account = await currentAccount();
-    if (!account) return NextResponse.json({ ok: false, code: "NOT_SIGNED_IN" }, { status: 401 });
+    const state = await sessionState();
+    if (state.kind === "unavailable") {
+      return NextResponse.json({ ok: false, code: "API_UNAVAILABLE" }, { status: 503 });
+    }
+    if (state.kind !== "signed-in") {
+      return NextResponse.json({ ok: false, code: "NOT_SIGNED_IN" }, { status: 401 });
+    }
+    const account = state.account;
 
     const payload = await body(request);
     const result = await deleteAccount(account.id, str(payload.password));

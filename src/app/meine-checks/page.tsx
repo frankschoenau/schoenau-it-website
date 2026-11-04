@@ -6,8 +6,10 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/layout/container";
 import AccountActions from "@/components/health-check/account-actions";
-import { currentAccount } from "@/lib/auth/session";
-import { listChecks } from "@/lib/health-check/checks";
+import ServiceNotice from "@/components/health-check/service-notice";
+import { sessionState } from "@/lib/auth/session";
+import { listChecks, type CheckSummary } from "@/lib/health-check/checks";
+import { ApiError } from "@/lib/api/errors";
 import { priorityLabel } from "@/lib/health-check/labels";
 
 import "@/styles/health-check.css";
@@ -21,11 +23,37 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function MyChecksPage() {
-  const account = await currentAccount();
-  if (!account) redirect("/anmelden");
+  const state = await sessionState();
+  if (state.kind === "signed-out" || state.kind === "forbidden") redirect("/anmelden");
+  if (state.kind !== "signed-in") {
+    // Die API antwortet nicht: die Sitzung bleibt bestehen, nur diese Seite
+    // kann ihre Daten gerade nicht laden.
+    return (
+      <ServiceNotice
+        title="Der Dienst ist gerade nicht erreichbar"
+        message="Ihre Sitzung bleibt bestehen. Bitte versuchen Sie es in einigen Minuten erneut."
+      />
+    );
+  }
 
+  const account = state.account;
   const verified = account.emailVerifiedAt !== null;
-  const checks = await listChecks(account.id);
+
+  let checks: CheckSummary[];
+  try {
+    checks = await listChecks(account.id);
+  } catch (error) {
+    return (
+      <ServiceNotice
+        title="Ihre Checks sind gerade nicht abrufbar"
+        message={
+          error instanceof ApiError
+            ? error.message
+            : "Es ist ein interner Fehler aufgetreten. Bitte versuchen Sie es erneut."
+        }
+      />
+    );
+  }
   const eur = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
   return (

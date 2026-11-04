@@ -29,7 +29,8 @@
  */
 
 import { apiConfig, apiHeaders } from "@/lib/health-check/api";
-import { currentAccount } from "@/lib/auth/session";
+import { sessionState, type SessionAccount } from "@/lib/auth/session";
+import { mintUserAssertion } from "@/lib/api/server";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +64,15 @@ async function forward(request: Request, segments: string[]): Promise<Response> 
   // erreichbar ist, und das muss auch vor der Anmeldung gehen. Alles andere
   // setzt ein Konto voraus — sonst waere der Durchreicher ein offener Zugang
   // zur API mit unserem Token.
+  let account: SessionAccount | null = null;
   if (segments[0] !== "health") {
-    const account = await currentAccount();
-    if (!account) return jsonError(401, "SIGN_IN_REQUIRED");
+    // Ein Ausfall der API ist keine abgelaufene Sitzung (AP-04.32, M-3).
+    const state = await sessionState();
+    if (state.kind === "signed-out") return jsonError(401, "SIGN_IN_REQUIRED");
+    if (state.kind === "forbidden") return jsonError(403, "ACCOUNT_BLOCKED");
+    if (state.kind === "unavailable") return jsonError(503, "AAHC_API_UNREACHABLE");
+    if (state.kind !== "signed-in") return jsonError(502, "AAHC_API_ERROR");
+    account = state.account;
     if (account.emailVerifiedAt === null) return jsonError(403, "EMAIL_NOT_VERIFIED");
   }
 
@@ -81,6 +88,15 @@ async function forward(request: Request, segments: string[]): Promise<Response> 
   const target = `${cfg.base}${path}`;
 
   const headers = apiHeaders(cfg, { accept: request.headers.get("accept") ?? "*/*" });
+
+  // Fuer Kundenaufrufe ersetzt die Benutzeridentitaet den statischen Mandanten:
+  // die API loest den Tenant aus dem Konto auf, ein mitgeschickter Fremdwert
+  // wuerde abgewiesen. Die Assertion entsteht nur nach der Sitzungspruefung und
+  // verlaesst den Server nie.
+  if (account) {
+    headers.delete("x-tenant-ref");
+    headers.set("x-user-assertion", mintUserAssertion(account.id));
+  }
 
   const contentType = request.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);

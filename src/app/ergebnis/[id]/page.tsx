@@ -5,8 +5,10 @@ import { notFound, redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/layout/container";
-import { currentAccount } from "@/lib/auth/session";
-import { getCheck } from "@/lib/health-check/checks";
+import ServiceNotice from "@/components/health-check/service-notice";
+import { sessionState } from "@/lib/auth/session";
+import { getCheck, type StoredCheck } from "@/lib/health-check/checks";
+import { ApiError } from "@/lib/api/errors";
 import {
   assessmentLabel,
   automationTypeLabel,
@@ -67,11 +69,37 @@ type Result = {
 };
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
-  const account = await currentAccount();
-  if (!account) redirect("/anmelden");
+  const state = await sessionState();
+  if (state.kind === "signed-out" || state.kind === "forbidden") redirect("/anmelden");
+  if (state.kind !== "signed-in") {
+    return (
+      <ServiceNotice
+        title="Der Dienst ist gerade nicht erreichbar"
+        message="Ihre Sitzung bleibt bestehen. Bitte versuchen Sie es in einigen Minuten erneut."
+      />
+    );
+  }
 
+  const account = state.account;
   const { id } = await params;
-  const check = await getCheck(account.id, id);
+
+  let check: StoredCheck | null;
+  try {
+    check = await getCheck(account.id, id);
+  } catch (error) {
+    // Ein technischer Fehler ist kein „nicht gefunden": der Kunde bekommt eine
+    // Erklärung statt einer 404-Seite.
+    return (
+      <ServiceNotice
+        title="Das Ergebnis ist gerade nicht abrufbar"
+        message={
+          error instanceof ApiError
+            ? error.message
+            : "Es ist ein interner Fehler aufgetreten. Bitte versuchen Sie es erneut."
+        }
+      />
+    );
+  }
   if (!check) notFound();
 
   const result = check.result as unknown as Result;
