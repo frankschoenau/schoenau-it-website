@@ -14,7 +14,7 @@ const identity = vi.hoisted(() => ({
   deleteAccount: vi.fn(),
 }));
 
-const mail = vi.hoisted(() => ({ sendMail: vi.fn() }));
+const mail = vi.hoisted(() => ({ sendMail: vi.fn(), logMailFailure: vi.fn() }));
 
 vi.mock("@/lib/api/identity", () => ({
   register: identity.register,
@@ -23,7 +23,10 @@ vi.mock("@/lib/api/identity", () => ({
   deleteAccount: identity.deleteAccount,
 }));
 
-vi.mock("@/lib/auth/mail", () => ({ sendMail: mail.sendMail }));
+vi.mock("@/lib/auth/mail", () => ({
+  sendMail: mail.sendMail,
+  logMailFailure: mail.logMailFailure,
+}));
 
 vi.mock("@/lib/auth/session", () => ({
   currentAccount: vi.fn(),
@@ -60,6 +63,7 @@ describe("register", () => {
 
     expect(result).toEqual({ ok: true, value: { accountId: "konto-test" } });
     expect(mail.sendMail).toHaveBeenCalledTimes(1);
+    expect(mail.logMailFailure).not.toHaveBeenCalled();
   });
 
   it("sendet an die angegebene Adresse und baut den Link aus der Basisadresse", async () => {
@@ -79,6 +83,8 @@ describe("register", () => {
 
     expect(result).toEqual({ ok: false, code: "MAIL_FAILED" });
     expect(identity.register).toHaveBeenCalledTimes(1);
+    expect(mail.logMailFailure).toHaveBeenCalledTimes(1);
+    expect(mail.logMailFailure.mock.calls[0][1]).toBe("register");
   });
 
   it("prüft die Eingabe, bevor die API gerufen wird", async () => {

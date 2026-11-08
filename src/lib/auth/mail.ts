@@ -52,17 +52,29 @@ export class MailError extends Error {
   readonly reason: MailErrorReason;
   readonly status: number | null;
   readonly code: string | null;
+  /** Standardisierter AADSTS-Code aus `error_codes`, z. B. 7000215. */
+  readonly aadsts: number | null;
+  /** Graph-Request-ID für den Supportfall, nur nach Prüfung übernommen. */
+  readonly requestId: string | null;
 
   constructor(
     reason: MailErrorReason,
     message: string,
-    options: { status?: number; code?: string | null; cause?: unknown } = {},
+    options: {
+      status?: number;
+      code?: string | null;
+      aadsts?: number | null;
+      requestId?: string | null;
+      cause?: unknown;
+    } = {},
   ) {
     super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = "MailError";
     this.reason = reason;
     this.status = options.status ?? null;
     this.code = options.code ?? null;
+    this.aadsts = options.aadsts ?? null;
+    this.requestId = options.requestId ?? null;
   }
 }
 
@@ -152,6 +164,36 @@ function safeCode(value: unknown): string | null {
   return typeof value === "string" && /^[A-Za-z0-9_.-]{1,64}$/.test(value) ? value : null;
 }
 
+/**
+ * AADSTS-Code aus `error_codes`. Nur positive, plausible Ganzzahlen; alles
+ * andere — auch Fließtext — wird verworfen.
+ */
+function safeAadsts(value: unknown): number | null {
+  if (!Array.isArray(value)) return null;
+  for (const entry of value) {
+    if (
+      typeof entry === "number" &&
+      Number.isInteger(entry) &&
+      entry > 0 &&
+      entry < 10_000_000
+    ) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+/**
+ * Graph-Request-ID. Die Kopfzeile ist ein Fremdwert und wird deshalb nur
+ * übernommen, wenn sie wie eine Kennung aussieht: 8 bis 64 Zeichen aus
+ * Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich.
+ */
+function safeRequestId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return /^[A-Za-z0-9][A-Za-z0-9._-]{7,63}$/.test(trimmed) ? trimmed : null;
+}
+
 async function requestToken(config: MailConfig): Promise<string> {
   const url = `${LOGIN_ROOT}/${encodeURIComponent(config.tenantId)}/oauth2/v2.0/token`;
   const body = new URLSearchParams({
@@ -186,6 +228,7 @@ async function requestToken(config: MailConfig): Promise<string> {
     throw new MailError("OAUTH", "MAIL_OAUTH_REJECTED", {
       status: response.status,
       code: safeCode(payload?.error),
+      aadsts: safeAadsts(payload?.error_codes),
     });
   }
 
@@ -282,6 +325,49 @@ export async function sendMail(mail: Mail): Promise<void> {
     typeof graphError === "object" && graphError !== null
       ? safeCode((graphError as { code?: unknown }).code)
       : null;
+  const requestId = safeRequestId(
+    response.headers.get("request-id") ?? response.headers.get("x-ms-request-id"),
+  );
 
-  throw new MailError("GRAPH", "MAIL_SEND_REJECTED", { status: response.status, code });
+  throw new MailError("GRAPH", "MAIL_SEND_REJECTED", { status: response.status, code, requestId });
+}
+
+/**
+ * Genau eine Diagnosezeile je fehlgeschlagenem Versand.
+ *
+ * Bewusst eng: keine Empfängeradresse, kein Betreff, kein Inhalt, kein Link,
+ * kein Token, kein Secret. `message` ist ausschließlich der von uns gesetzte
+ * Stabilcode; bei CONFIG nennt er höchstens Variablennamen. `code`, `aadsts`
+ * und `requestId` sind bereits validiert, `cause` stammt aus einer festen
+ * Liste. Die Funktion darf den Ablauf nicht verändern — deshalb fängt sie
+ * eigene Fehler ab.
+ */
+export function logMailFailure(error: unknown, context: string): void {
+  try {
+    const mailError = error instanceof MailError ? error : null;
+    const cause = (mailError?.cause ?? (error as { cause?: unknown } | null)?.cause) as
+      | { name?: unknown }
+      | undefined;
+    const causeName = cause?.name;
+
+    const record = {
+      event: "mail_send_failed",
+      context: /^[a-z][a-z0-9_-]{0,31}$/.test(context) ? context : "unknown",
+      reason: mailError?.reason ?? "UNKNOWN",
+      message: mailError?.message ?? "UNEXPECTED_ERROR",
+      status: mailError?.status ?? null,
+      code: mailError?.code ?? null,
+      aadsts: mailError?.aadsts ?? null,
+      requestId: mailError?.requestId ? safeRequestId(mailError.requestId) : null,
+      cause:
+        typeof causeName === "string" &&
+        ["TypeError", "TimeoutError", "AbortError"].includes(causeName)
+          ? causeName
+          : null,
+    };
+
+    console.error(`[mail-diag] ${JSON.stringify(record)}`);
+  } catch {
+    // Eine Diagnosezeile darf den Versandpfad nie zum Absturz bringen.
+  }
 }

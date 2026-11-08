@@ -1,4 +1,4 @@
-import { sendMail } from "./mail";
+import { logMailFailure, sendMail } from "./mail";
 import {
   confirm,
   deleteAccount as apiDeleteAccount,
@@ -72,7 +72,11 @@ export async function register(
         `${link}\n\n` +
         "Der Link ist 48 Stunden gültig. Wenn Sie sich nicht registriert haben, ignorieren Sie diese Mail.\n",
     });
-  } catch {
+  } catch (error) {
+    // Eine Zeile je Fehlschlag: Klasse, Status, standardisierte Codes.
+    // Keine Adresse, kein Inhalt, kein Link, kein Token, kein Secret.
+    logMailFailure(error, "register");
+
     // Das Konto ist angelegt, die Mail ist es nicht. Das darf nicht als Erfolg
     // durchgehen: Sonst wartet der Kunde auf eine Nachricht, die nie kommt.
     // Der Bestätigungslink wird hier nicht protokolliert — er steht nur in
