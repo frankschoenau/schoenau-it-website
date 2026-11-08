@@ -1,0 +1,260 @@
+/* =========================================================
+   Health Check — Design-Schicht
+   =========================================================
+
+   Übernimmt die Tokens der Website (src/app/globals.css) und
+   ergänzt nur, was der Check zusätzlich braucht.
+
+   Bewusst reines CSS ohne Tailwind-Abhängigkeit: Diese Datei
+   lässt sich unabhängig davon prüfen, wie der Build konfiguriert
+   ist, und sie kann in jedem Fall importiert werden. Wo Tailwind
+   ohnehin verfügbar ist, sind die Werte identisch mit den
+   Utility-Klassen der Website (bg-[#0B1120] usw.).
+
+   Keine neuen Farben. Alles, was hier steht, ist entweder ein
+   Token aus globals.css oder eine Ableitung davon.
+   ========================================================= */
+
+:root {
+  /* COLORS — identisch mit globals.css */
+  --hc-background: #0B1120;
+  --hc-surface: #111827;
+  --hc-foreground: #F8FAFC;
+  --hc-primary: #2563EB;
+  --hc-primary-hover: #1D4ED8;
+  --hc-accent: #06B6D4;
+  --hc-muted: #94A3B8;
+  --hc-border: rgba(255, 255, 255, 0.08);
+
+  /* Priorität — die einzige Ergänzung, sparsam eingesetzt.
+     Abgeleitet aus dem dunklen Grundton, nicht aus einer neuen Palette. */
+  --hc-p1: #22C55E;
+  --hc-p2: #F59E0B;
+  --hc-p3: #94A3B8;
+
+  /* TYPOGRAPHY */
+  --hc-font-heading: var(--font-geist-sans);
+  --hc-font-body: var(--font-inter);
+
+  /* RADIUS */
+  --hc-radius-sm: 0.75rem;
+  --hc-radius-md: 1rem;
+  --hc-radius-lg: 1.5rem;
+
+  /* SHADOWS */
+  --hc-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --hc-shadow-glow: 0 10px 40px rgba(37, 99, 235, 0.18);
+}
+
+/* ---------- Flächen ---------- */
+
+.hc-surface {
+  background: var(--hc-surface);
+  border: 1px solid var(--hc-border);
+  border-radius: var(--hc-radius-lg);
+  box-shadow: var(--hc-shadow);
+}
+
+.hc-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hc-border);
+  border-radius: var(--hc-radius-lg);
+}
+
+/* ---------- Aktionen ---------- */
+
+.hc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 1rem 1.75rem;
+  font: 500 0.875rem/1 var(--hc-font-body);
+  cursor: pointer;
+  transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.hc-btn:hover { transform: translateY(-2px); }
+.hc-btn:focus-visible { outline: 2px solid var(--hc-accent); outline-offset: 3px; }
+.hc-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.hc-btn--primary {
+  background: var(--hc-primary);
+  color: #fff;
+  box-shadow: var(--hc-shadow-glow);
+}
+.hc-btn--primary:hover { background: var(--hc-primary-hover); }
+
+.hc-btn--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--hc-foreground);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+}
+.hc-btn--secondary:hover { background: rgba(255, 255, 255, 0.10); }
+
+.hc-btn--quiet {
+  background: transparent;
+  color: var(--hc-muted);
+  padding: 0.5rem 0.75rem;
+}
+.hc-btn--quiet:hover { color: var(--hc-foreground); }
+
+/* ---------- Text ---------- */
+
+.hc-eyebrow {
+  font: 500 0.75rem/1 var(--hc-font-body);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--hc-accent);
+}
+
+.hc-gradient {
+  background: linear-gradient(to right, var(--hc-primary), var(--hc-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.hc-muted { color: var(--hc-muted); }
+.hc-hint { color: var(--hc-muted); font-size: 0.875rem; line-height: 1.6; }
+
+/* ---------- Formular ---------- */
+
+.hc-field {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hc-border);
+  border-radius: var(--hc-radius-sm);
+  color: var(--hc-foreground);
+  font: 400 1rem/1.5 var(--hc-font-body);
+  padding: 0.875rem 1rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.hc-field::placeholder { color: rgba(148, 163, 184, 0.7); }
+
+.hc-field:hover { border-color: rgba(255, 255, 255, 0.16); }
+
+.hc-field:focus {
+  outline: none;
+  border-color: var(--hc-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hc-field[aria-invalid="true"] {
+  border-color: #F87171;
+}
+
+/* Klickfläche für eine Antwortstufe im Dialog. */
+.hc-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hc-border);
+  border-radius: var(--hc-radius-sm);
+  color: var(--hc-foreground);
+  font: 400 0.9375rem/1.45 var(--hc-font-body);
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.hc-choice:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateX(2px);
+}
+
+.hc-choice[aria-pressed="true"] {
+  border-color: var(--hc-primary);
+  background: rgba(37, 99, 235, 0.12);
+}
+
+/* ---------- Fortschritt ---------- */
+
+.hc-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hc-progress > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(to right, var(--hc-primary), var(--hc-accent));
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+/* ---------- Kennzahlen ---------- */
+
+.hc-kpi { display: flex; flex-direction: column; gap: 0.25rem; }
+.hc-kpi__label { color: var(--hc-muted); font-size: 0.8125rem; }
+.hc-kpi__value { font: 600 2rem/1.1 var(--hc-font-heading); letter-spacing: -0.02em; }
+.hc-kpi__value--accent { color: var(--hc-accent); }
+
+/* ---------- Priorität ---------- */
+
+.hc-prio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.375rem 0.875rem;
+  font: 500 0.8125rem/1 var(--hc-font-body);
+  border: 1px solid currentColor;
+}
+
+.hc-prio--p1 { color: var(--hc-p1); }
+.hc-prio--p2 { color: var(--hc-p2); }
+.hc-prio--p3 { color: var(--hc-p3); }
+
+/* ---------- Gesperrter Bereich ---------- */
+
+.hc-locked {
+  position: relative;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: var(--hc-radius-lg);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1.5rem;
+}
+
+.hc-locked > * { opacity: 0.55; }
+.hc-locked__badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font: 500 0.6875rem/1 var(--hc-font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hc-accent);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 999px;
+  padding: 0.375rem 0.625rem;
+}
+
+/* ---------- Barrierefreies Verstecken ---------- */
+
+.hc-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Bewegung reduzieren ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-btn, .hc-choice, .hc-progress > span { transition: none; }
+  .hc-btn:hover, .hc-choice:hover { transform: none; }
+}
