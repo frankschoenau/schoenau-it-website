@@ -14,6 +14,10 @@ const MESSAGES: Record<string, string> = {
   WEAK_PASSWORD: "Das Passwort braucht mindestens 10 Zeichen.",
   EMAIL_TAKEN: "Für diese Adresse gibt es bereits ein Konto. Melden Sie sich an.",
   INVALID_CREDENTIALS: "E-Mail-Adresse oder Passwort stimmt nicht.",
+  // Das Konto besteht; nur die Mail fehlt. Der Satz sagt genau das, damit
+  // niemand auf eine Nachricht wartet, die nicht unterwegs ist.
+  MAIL_FAILED:
+    "Ihr Konto wurde angelegt, die Bestätigungsmail konnte aber nicht versendet werden. Bitte fordern Sie sie auf der Anmeldeseite erneut an oder schreiben Sie an frank@schoenau-it.de.",
   NETWORK: "Der Server antwortet nicht. Bitte versuchen Sie es erneut.",
 };
 

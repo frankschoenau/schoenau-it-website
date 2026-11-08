@@ -23,7 +23,12 @@ export type AuthCode =
   | "EMAIL_TAKEN"
   | "INVALID_CREDENTIALS"
   | "TOKEN_INVALID"
-  | "WRONG_PASSWORD";
+  | "WRONG_PASSWORD"
+  /** Konto besteht, die Bestätigungsmail ging aber nicht raus. */
+  | "MAIL_FAILED"
+  /** Für den erneuten Versand fehlt die API-Route (siehe unten). */
+  | "RESEND_UNAVAILABLE"
+  | "RATE_LIMITED";
 
 const MIN_PASSWORD_LENGTH = 10;
 
@@ -57,17 +62,45 @@ export async function register(
   }
 
   const link = `${baseUrl}/api/auth/verify?token=${encodeURIComponent(result.data.confirm_token)}`;
-  await sendMail({
-    to: email.trim(),
-    subject: "Bitte bestätigen Sie Ihre E-Mail-Adresse",
-    text:
-      "Guten Tag,\n\n" +
-      "bitte bestätigen Sie Ihre Adresse, damit Ihr Health Check gespeichert werden kann:\n\n" +
-      `${link}\n\n` +
-      "Der Link ist 48 Stunden gültig. Wenn Sie sich nicht registriert haben, ignorieren Sie diese Mail.\n",
-  });
+  try {
+    await sendMail({
+      to: email.trim(),
+      subject: "Bitte bestätigen Sie Ihre E-Mail-Adresse",
+      text:
+        "Guten Tag,\n\n" +
+        "bitte bestätigen Sie Ihre Adresse, damit Ihr Health Check gespeichert werden kann:\n\n" +
+        `${link}\n\n` +
+        "Der Link ist 48 Stunden gültig. Wenn Sie sich nicht registriert haben, ignorieren Sie diese Mail.\n",
+    });
+  } catch {
+    // Das Konto ist angelegt, die Mail ist es nicht. Das darf nicht als Erfolg
+    // durchgehen: Sonst wartet der Kunde auf eine Nachricht, die nie kommt.
+    // Der Bestätigungslink wird hier nicht protokolliert — er steht nur in
+    // der Mail. Einzelheiten (OAuth/Graph/Config) bleiben im Fehlerobjekt von
+    // `mail.ts` und werden von der Route nicht nach außen gegeben.
+    return { ok: false, code: "MAIL_FAILED" };
+  }
 
   return { ok: true, value: { accountId: result.data.account_id } };
+}
+
+/**
+ * Erneuter Versand der Bestätigungsmail.
+ *
+ * Die AAHC-API stellt ein Bestätigungstoken ausschließlich einmal bei der
+ * Registrierung aus (`identity/register`); eine Route zum Wiederholen gibt es
+ * nicht. Diese Anwendung kann das fehlende Token nicht selbst erzeugen — das
+ * wäre eine Fälschung — und darf es auch nicht aus einem Protokoll holen.
+ * Deshalb antwortet die Funktion ehrlich mit `RESEND_UNAVAILABLE`, statt einen
+ * Versand zu behaupten.
+ *
+ * Die Antwort ist unabhängig davon, ob die Adresse existiert: Es wird keine
+ * Anfrage an die API gestellt, also gibt es auch kein Existenz-Orakel.
+ */
+export function resendConfirmation(email: string): AuthResult<true> {
+  const normalized = normalizeEmail(email);
+  if (!looksLikeEmail(normalized)) return { ok: false, code: "INVALID_EMAIL" };
+  return { ok: false, code: "RESEND_UNAVAILABLE" };
 }
 
 export async function verifyEmail(token: string): Promise<AuthResult<true>> {

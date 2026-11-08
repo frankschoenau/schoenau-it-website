@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Container from "@/components/layout/container";
 import CredentialsForm from "@/components/health-check/credentials-form";
+import ResendForm from "@/components/health-check/resend-form";
 
 import "@/styles/health-check.css";
 
@@ -62,6 +63,8 @@ export default async function LoginPage({
             )}
 
             <CredentialsForm mode="login" />
+
+            <ResendForm />
 
             <p className="hc-hint mt-6">
               Noch kein Konto? <Link href="/registrieren" className="underline">Jetzt anlegen</Link>
